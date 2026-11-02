@@ -307,7 +307,7 @@ class DashboardHandler(BaseHTTPRequestHandler):
         origin = origin.rstrip("/").lower()
         if IS_PRODUCTION:
             allowed = {public_origin() or ""}
-            if not allowed or not allowed != {""}:
+            if not allowed or not all(allowed):
                 return True
             return origin in {value.rstrip("/").lower() for value in allowed if value}
         return origin in {
