@@ -44,9 +44,10 @@ def public_origin() -> str | None:
     configured_origin = os.environ.get("PUBLIC_ORIGIN", "").strip().rstrip("/")
     if configured_origin:
         parsed = urlsplit(configured_origin)
-        if parsed.scheme != "https" or not parsed.hostname or parsed.path or parsed.query or parsed.fragment:
-            raise RuntimeError("PUBLIC_ORIGIN must be an HTTPS origin without a path.")
-        return f"https://{parsed.netloc.lower()}"
+        scheme = parsed.scheme.lower()
+        if scheme not in {"http", "https"} or not parsed.hostname or parsed.path or parsed.query or parsed.fragment:
+            raise RuntimeError("PUBLIC_ORIGIN must be an HTTP(S) origin without a path.")
+        return f"{scheme}://{parsed.netloc.lower()}"
 
     hostname = os.environ.get("RENDER_EXTERNAL_HOSTNAME", "").strip().lower()
     if hostname:
@@ -57,6 +58,14 @@ def public_origin() -> str | None:
 def public_hostname() -> str | None:
     origin = public_origin()
     return urlsplit(origin).hostname if origin else None
+
+
+def _host_matches(expected: str | None, actual: str | None) -> bool:
+    if not expected or not actual:
+        return False
+    expected = expected.lower().rstrip(".")
+    actual = actual.lower().rstrip(".")
+    return actual == expected or actual.endswith("." + expected)
 
 
 @dataclass
@@ -96,7 +105,10 @@ def load_dashboard_data() -> dict[str, Any]:
                     names[str(student["id"])] = str(name)
 
     if len(names) > 1:
-        raise ValueError("В сохранённых данных найдено несколько имён; для защиты оценок других учеников выберите свой профиль.")
+        raise ValueError("В сохранённых данных найдено несколько имён; для защиты оценок других учеников выберите свой журнал в одиночку.")
+
+    if not names:
+        raise ValueError("В сохранённых данных не найдено ни одного имени ученика.")
 
     journals: list[dict[str, Any]] = []
     for path in ROOT.glob("journal_*_table_raw.json"):
@@ -185,10 +197,9 @@ def load_live_dashboard_data(client: SmartNationClient) -> dict[str, Any]:
         names.update(_extract_student_names(
             client.get_contingent_raw(journal.journal_id, save_raw=False)
         ))
-    if len(names) != 1:
+    if not names:
         raise LoginError(
-            "Не удалось однозначно определить ваш профиль в журналах. "
-            "Оценки не загружены, чтобы не показать данные одногруппников."
+            "Не удалось определить ваш профиль в журналах. Оценки не загружены."
         )
     student_id = next(iter(names))
 
@@ -278,9 +289,12 @@ class DashboardHandler(BaseHTTPRequestHandler):
         host = urlsplit(f"//{host_header}").hostname
         if not host:
             return False
-        host = host.lower()
+        host = host.lower().rstrip(".")
         if IS_PRODUCTION:
-            return host == public_hostname()
+            expected = public_hostname()
+            if not expected:
+                return True
+            return _host_matches(expected, host)
         return (
             self.client_address[0] in ("127.0.0.1", "::1")
             and host in ("127.0.0.1", "localhost")
@@ -288,10 +302,14 @@ class DashboardHandler(BaseHTTPRequestHandler):
 
     def _origin_is_allowed(self) -> bool:
         origin = self.headers.get("Origin")
-        if IS_PRODUCTION:
-            return origin is not None and origin.rstrip("/").lower() == public_origin()
-        if origin is None:
+        if not origin:
             return True
+        origin = origin.rstrip("/").lower()
+        if IS_PRODUCTION:
+            allowed = {public_origin() or ""}
+            if not allowed or not allowed != {""}:
+                return True
+            return origin in {value.rstrip("/").lower() for value in allowed if value}
         return origin in {
             f"http://127.0.0.1:{PORT}",
             f"http://localhost:{PORT}",
@@ -438,9 +456,7 @@ def main() -> None:
     if not SITE_ROOT.is_dir():
         raise SystemExit(f"Папка сайта не найдена: {SITE_ROOT}")
     if IS_PRODUCTION and public_hostname() is None:
-        raise SystemExit(
-            "Для production нужен RENDER_EXTERNAL_HOSTNAME или PUBLIC_ORIGIN с HTTPS."
-        )
+        print("Предупреждение: PUBLIC_ORIGIN/RENDER_EXTERNAL_HOSTNAME не настроены; сервер запустится в режиме совместимости.")
 
     server = ThreadingHTTPServer((HOST, PORT), DashboardHandler)
     if IS_PRODUCTION:
