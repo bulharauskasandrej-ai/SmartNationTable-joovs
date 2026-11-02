@@ -1,0 +1,50 @@
+{
+  "days": [],
+  "canEdit": false,
+  "canGenerateDays": false,
+  "canCalcResults": false,
+  "canAddDay": false,
+  "canExport": false,
+  "canRestore": false,
+  "canUsePrevDates": true,
+  "noCreateDayPeriod": [],
+  "noEditDayPeriod": [],
+  "noAddDayFutureDate": true,
+  "allowEditDateAfterResult": false,
+  "strictPointEdit": false,
+  "hasCtp": false,
+  "hasCwp": false,
+  "typeOfEvaluation": "percent",
+  "isModule": true,
+  "withResult": true,
+  "isStudent": true,
+  "currentSemester": null,
+  "availableSemesters": [],
+  "availableDisciplines": [
+    {
+      "id": null,
+      "name": "Все предметы"
+    },
+    {
+      "id": 160530,
+      "name": "Владеть основными вопросами в области экономической теории"
+    },
+    {
+      "id": 160531,
+      "name": "Анализировать  экономические процессы  на предприятии"
+    },
+    {
+      "id": 160532,
+      "name": "Владеть научными и законодательными основами организации и ведения предпринимательской деятельности и антикоррупционной культуры в Республике Казахстан"
+    },
+    {
+      "id": 160533,
+      "name": "Соблюдать этику делового общения"
+    }
+  ],
+  "totalHours": 72,
+  "journals": [],
+  "status": "open",
+  "canChangeStatus": false,
+  "retakeResultType": ""
+}

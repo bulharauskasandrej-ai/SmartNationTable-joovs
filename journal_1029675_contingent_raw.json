@@ -1,0 +1,13 @@
+{
+  "students": [
+    {
+      "id": 32437958,
+      "fullName": "Жетпісбай Ілияс Арманұлы",
+      "shortName": "Жетпісбай І. А.",
+      "isRetired": false,
+      "isCurrent": 1,
+      "journalId": 1029675
+    }
+  ],
+  "isPersonal": false
+}

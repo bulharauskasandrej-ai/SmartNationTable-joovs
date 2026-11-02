@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#11131b">
+  <title>Аттестации — личный кабинет</title>
+  <link rel="stylesheet" href="/styles.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <a class="brand" href="/" aria-label="На главную">
+        <span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></span>
+        <span>дневник<span class="brand-dot">.</span></span>
+      </a>
+      <div class="topbar-actions">
+        <div class="topbar-note"><span class="status-dot"></span> Личные оценки</div>
+        <button id="theme-button" class="theme-button" type="button" aria-label="Включить светлую тему" title="Сменить тему">☼</button>
+        <button id="logout-button" class="logout-button" type="button" hidden>Выйти</button>
+      </div>
+    </header>
+
+    <section id="login-screen" class="login-screen" hidden>
+      <div class="login-card">
+        <div class="login-icon" aria-hidden="true">↗</div>
+        <p class="eyebrow"><span class="eyebrow-line"></span> ЛИЧНЫЙ ВХОД</p>
+        <h1>Войти в SmartNation<span class="heading-dot">.</span></h1>
+        <p class="login-description">ИИН и пароль используются только для входа в SmartNation. Сайт не сохраняет пароль.</p>
+        <form id="login-form" autocomplete="on">
+          <label class="login-field">
+            <span>ИИН</span>
+            <input id="iin-input" name="username" type="text" inputmode="numeric" autocomplete="username" maxlength="12" pattern="[0-9]{12}" placeholder="12 цифр" required>
+          </label>
+          <label class="login-field">
+            <span>Пароль SmartNation</span>
+            <input id="password-input" name="password" type="password" autocomplete="current-password" placeholder="Твой пароль" required>
+          </label>
+          <p id="login-error" class="login-error" role="alert" hidden></p>
+          <button id="login-submit" class="login-submit" type="submit"><span>Войти и загрузить оценки</span><span class="login-spinner" aria-hidden="true"></span></button>
+        </form>
+        <p class="login-privacy">При публикации на Render соединение защищено HTTPS. Оценки хранятся в памяти сервера только на время сеанса.</p>
+      </div>
+    </section>
+
+    <main id="dashboard" hidden>
+      <section class="welcome">
+        <div>
+          <p class="eyebrow"><span class="eyebrow-line"></span> УЧЕБНЫЙ ПРОГРЕСС</p>
+          <h1>Аттестации<span class="heading-dot">.</span></h1>
+          <p class="welcome-subtitle">Настоящие аттестации, как в журнале, и оценки по датам.</p>
+        </div>
+        <div id="student-name" class="student-pill">Загружаю имя…</div>
+      </section>
+
+      <section class="notice" role="note">
+        <span class="notice-icon" aria-hidden="true">i</span>
+        <p><strong>А — это аттестация из журнала.</strong> Показываю именно её балл, а не среднее обычных оценок. От <strong>50 баллов — зачёт есть</strong>. Нажми «Оценки» у предмета, чтобы открыть оценки за месяц с датами.</p>
+      </section>
+
+      <section class="stats-grid" aria-label="Сводка аттестаций">
+        <article class="stat-card">
+          <div class="stat-top"><span class="stat-label">Аттестаций от 50 баллов</span><span class="stat-icon icon-green">✓</span></div>
+          <div class="stat-value"><span id="passed-value">—</span></div>
+          <div class="stat-foot">по предметам и месяцам</div>
+        </article>
+        <article class="stat-card">
+          <div class="stat-top"><span class="stat-label">Требуют внимания</span><span class="stat-icon icon-amber">!</span></div>
+          <div class="stat-value"><span id="warning-value">—</span></div>
+          <div id="warning-caption" class="stat-foot">нет аттестации, нет балла или меньше 50</div>
+        </article>
+        <article class="stat-card">
+          <div class="stat-top"><span class="stat-label">Средний балл аттестаций</span><span class="stat-icon icon-violet">↗</span></div>
+          <div class="stat-value"><span id="average-value">—</span><span class="stat-unit">балла</span></div>
+          <div class="stat-foot">по выставленным аттестациям</div>
+        </article>
+      </section>
+
+      <section class="grades-section">
+        <div class="section-heading">
+          <div><p class="eyebrow section-eyebrow">СВОДНАЯ ТАБЛИЦА</p><h2>Предметы и аттестации <span id="subject-count" class="results-count"></span></h2></div>
+          <div class="table-tools">
+            <label class="month-filter-wrap">
+              <span class="search-label">Обычные оценки</span>
+              <select id="grades-month-filter" aria-label="Фильтр оценок по месяцу"><option value="all">Все месяцы</option></select>
+            </label>
+            <label class="search-wrap">
+              <span class="search-label">Найти предмет</span>
+              <span class="search-control"><span aria-hidden="true">⌕</span><input id="search-filter" type="search" placeholder="Например, ООМ 02" autocomplete="off"></span>
+            </label>
+          </div>
+        </div>
+        <div id="warning-banner" class="warning-banner" hidden></div>
+        <div id="table-scroll" class="table-scroll" hidden>
+          <div id="table-content" class="table-content"></div>
+        </div>
+        <div id="empty-state" class="empty-state" hidden>
+          <div class="empty-icon">✳</div>
+          <h3>Предметы не найдены</h3>
+          <p>Попробуй изменить запрос поиска.</p>
+        </div>
+      </section>
+      <div id="error-state" class="error-state" hidden></div>
+    </main>
+    <footer id="footer" class="footer" hidden><span class="footer-brand">дневник<span class="brand-dot">.</span></span><span>Оценки хранятся в памяти сервера только на время сеанса</span></footer>
+  </div>
+</body>
+</html>

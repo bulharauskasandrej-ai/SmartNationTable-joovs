@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: smartnation-grades
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: python student_grades_site.py
+    envVars:
+      - key: APP_ENV
+        value: production
